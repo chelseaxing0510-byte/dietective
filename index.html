@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dietective - Horror Investigation Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+background:#050505;
+color:#eee;
+font-family:'Cormorant Garamond',serif;
+height:100vh;
+overflow:hidden;
+}
+body:before{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 20% 20%, rgba(120,0,0,.15), transparent 40%),
+radial-gradient(circle at 80% 30%, rgba(120,0,0,.1), transparent 35%),
+linear-gradient(#0b0b0b,#000);
+animation:breathe 8s infinite alternate;
+z-index:-3;
+}
+body:after{
+content:"";
+position:fixed;
+inset:0;
+background:repeating-linear-gradient(to bottom,rgba(255,255,255,.03) 0 1px,transparent 1px 3px);
+pointer-events:none;
+opacity:.5;
+}
+@keyframes breathe{from{filter:brightness(.9)}to{filter:brightness(1.1)}}
+.container{display:flex;height:100vh}
+.sidebar{
+width:280px;
+background:#080808;
+border-right:1px solid #2b1111;
+padding:24px;
+overflow:auto;
+}
+.logo{
+font-size:38px;
+color:#b91c1c;
+letter-spacing:2px;
+margin-bottom:10px;
+font-weight:700;
+}
+.sub{font-size:12px;letter-spacing:3px;color:#777;margin-bottom:25px}
+.file{
+padding:10px;
+border:1px solid #222;
+margin-bottom:8px;
+border-radius:8px;
+color:#888;
+cursor:pointer;
+}
+.file:hover{border-color:#5a1515;color:#ddd}
+.active{border-color:#b91c1c;color:#fff;background:#140909}
+.locked{opacity:.35;cursor:not-allowed}
+.main{
+flex:1;
+padding:40px;
+overflow:auto;
+position:relative;
+}
+.warning{color:#b91c1c;letter-spacing:4px;font-size:12px;margin-bottom:12px}
+.title{
+font-size:52px;
+color:#d1d5db;
+text-shadow:2px 2px 0 #400;
+font-weight:700;
+}
+.story{
+margin-top:20px;
+font-size:22px;
+line-height:1.9;
+min-height:220px;
+white-space:pre-line;
+}
+img.evidence{
+width:100%;
+max-width:700px;
+border-radius:12px;
+margin:25px 0;
+filter:grayscale(100%) sepia(20%) brightness(.7) contrast(1.2);
+animation:zoom 20s infinite alternate;
+}
+@keyframes zoom{from{transform:scale(1)}to{transform:scale(1.08)}}
+.question{
+background:#0a0a0a;
+font-family:'Cormorant Garamond',serif;
+border:1px solid #222;
+padding:20px;
+border-radius:12px;
+font-size:21px;
+}
+.option,.btn{
+display:block;
+width:100%;
+margin-top:10px;
+padding:14px;
+border:none;
+border-radius:10px;
+background:#1a1a1a;
+color:#fff;
+cursor:pointer;
+font-size:20px;
+font-family:'Cormorant Garamond',serif;
+}
+.option:hover,.btn:hover{background:#2b1111}
+.option:disabled{opacity:.65;cursor:not-allowed}
+.option.correct{background:#0f2a16;border:1px solid #2f8f46}
+.option.wrong{background:#3a1010;border:1px solid #842020}
+.msg{margin-top:15px;padding:15px;border-radius:10px;white-space:pre-line}
+.good{background:#0f2a16}
+.bad{background:#3a1010}
+.shake{animation:shake .35s}
+@keyframes shake{
+0%{transform:translateX(0)}25%{transform:translateX(-8px)}
+50%{transform:translateX(8px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}
+}
+
+/* Case selection landing page */
+.case-select-mode{
+background:
+radial-gradient(circle at 50% 0%, rgba(185,28,28,.20), transparent 35%),
+linear-gradient(135deg, rgba(20,0,0,.6), #000 55%);
+}
+.case-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:28px;
+margin-top:35px;
+max-width:980px;
+}
+.case-card{
+background:#090909;
+border:1px solid #3a1010;
+border-radius:16px;
+overflow:hidden;
+cursor:pointer;
+box-shadow:0 0 25px rgba(185,28,28,.12);
+transition:.25s;
+}
+.case-card:hover{
+transform:translateY(-6px);
+border-color:#b91c1c;
+box-shadow:0 0 40px rgba(185,28,28,.25);
+}
+.case-card img{
+width:100%;
+height:210px;
+object-fit:cover;
+display:block;
+filter:grayscale(100%) sepia(30%) brightness(.55) contrast(1.35);
+}
+.case-card-body{padding:20px}
+.case-card h2{
+font-size:30px;
+color:#f3f4f6;
+margin-bottom:8px;
+}
+.case-card p{
+font-size:18px;
+color:#aaa;
+line-height:1.45;
+}
+.case-select-title{
+font-size:64px;
+color:#f3f4f6;
+text-shadow:3px 3px 0 #400;
+}
+.case-select-subtitle{
+font-size:0;
+margin:0;
+height:0;
+overflow:hidden;
+}
+
+/* Opening = incident report */
+.main.opening-mode{
+background:
+radial-gradient(circle at 15% 10%, rgba(185,28,28,.35), transparent 18%),
+linear-gradient(135deg, rgba(70,0,0,.28), rgba(0,0,0,.95) 45%),
+repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 5px);
+}
+.opening-mode .warning{
+color:#ff4d4d;
+border:1px solid #5a1515;
+display:inline-block;
+padding:8px 12px;
+background:rgba(70,0,0,.25);
+box-shadow:0 0 20px rgba(185,28,28,.25);
+}
+.opening-mode .title{
+font-size:60px;
+color:#f3f4f6;
+border-bottom:1px solid #5a1515;
+padding-bottom:14px;
+max-width:850px;
+}
+.opening-mode .title:before{
+content:"INCIDENT REPORT / 案件报告";
+display:block;
+font-size:14px;
+letter-spacing:6px;
+color:#ff4d4d;
+margin-bottom:10px;
+}
+.opening-mode .story{
+font-size:27px;
+line-height:1.75;
+background:rgba(10,10,10,.72);
+border:1px solid #441111;
+border-left:6px solid #b91c1c;
+padding:28px;
+max-width:900px;
+box-shadow:0 0 35px rgba(185,28,28,.18);
+}
+.opening-mode img.evidence{
+max-width:760px;
+border:1px solid #5a1515;
+filter:grayscale(100%) sepia(35%) brightness(.45) contrast(1.55) blur(.2px);
+box-shadow:0 0 45px rgba(185,28,28,.18);
+}
+.opening-mode .btn{
+max-width:360px;
+letter-spacing:3px;
+border:1px solid #b91c1c;
+background:#240707;
+}
+
+/* Investigation = evidence board */
+.main.investigation-mode{
+background:
+linear-gradient(180deg, rgba(255,255,255,.015), transparent 35%),
+radial-gradient(circle at 30% 25%, rgba(120,0,0,.10), transparent 35%);
+}
+.investigation-mode .title:before{
+content:"// EVIDENCE REVIEW / 证据调查";
+display:block;
+font-size:13px;
+letter-spacing:5px;
+color:#b91c1c;
+margin-bottom:8px;
+}
+
+/* Key Takeaways = case closed file */
+.main.takeaway-mode{
+background:
+linear-gradient(90deg, rgba(80,0,0,.55), rgba(0,0,0,.95) 42%),
+radial-gradient(circle at 80% 15%, rgba(255,0,0,.22), transparent 22%),
+repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, transparent 1px 6px);
+}
+.takeaway-mode .warning{display:none}
+.takeaway-mode .title{
+font-size:68px;
+color:#f9fafb;
+background:#190606;
+border:2px solid #7f1d1d;
+padding:20px 26px;
+display:inline-block;
+transform:rotate(-1deg);
+box-shadow:0 0 35px rgba(185,28,28,.25);
+}
+.takeaway-mode .title:before{
+content:"CASE CLOSED / 案件总结";
+display:block;
+font-size:14px;
+letter-spacing:6px;
+color:#ff6b6b;
+margin-bottom:8px;
+}
+.takeaway-mode .story{
+margin-top:34px;
+background:linear-gradient(#120707,#080808);
+border:2px solid #5a1515;
+border-top:10px solid #7f1d1d;
+border-radius:4px;
+padding:32px 36px;
+box-shadow:0 0 45px rgba(185,28,28,.24);
+font-size:22px;
+line-height:1.85;
+max-width:920px;
+}
+.takeaway-mode img.evidence{display:none}
+.takeaway-mode .btn{
+max-width:360px;
+margin-top:28px;
+background:#5a1515;
+border:1px solid #ff6b6b;
+letter-spacing:3px;
+}
+.takeaway-mode .btn:hover{background:#7f1d1d}
+.question h3{
+font-family:'Cormorant Garamond',serif !important;
+font-size:28px;
+font-weight:400;
+}
+.option{
+font-family:'Cormorant Garamond',serif !important;
+font-weight:400 !important;
+letter-spacing:0 !important;
+text-transform:none !important;
+}
+
+.played-badge{
+display:inline-block;
+margin-top:10px;
+padding:5px 9px;
+border:1px solid #2f8f46;
+border-radius:999px;
+background:#0f2a16;
+color:#c7f9d4;
+font-size:15px;
+letter-spacing:1px;
+}
+.file.completed{
+border-color:#2f8f46;
+color:#c7f9d4;
+}
+.score-panel{
+margin-top:24px;
+background:#090909;
+border:2px solid #5a1515;
+border-left:8px solid #b91c1c;
+border-radius:12px;
+padding:24px;
+max-width:760px;
+box-shadow:0 0 35px rgba(185,28,28,.20);
+}
+.score-panel h2{
+font-size:38px;
+margin-bottom:12px;
+color:#f3f4f6;
+}
+.score-panel p{
+font-size:24px;
+line-height:1.6;
+color:#ddd;
+}
+.score-number{
+font-size:54px;
+color:#ff6b6b;
+font-weight:700;
+}
+
+
+.game-intro{
+margin-top:22px;
+max-width:880px;
+background:rgba(10,10,10,.72);
+border:1px solid #3a1010;
+border-left:6px solid #b91c1c;
+border-radius:14px;
+padding:20px 24px;
+box-shadow:0 0 30px rgba(185,28,28,.14);
+}
+.game-intro p{
+font-size:23px;
+line-height:1.55;
+color:#ddd;
+margin-bottom:12px;
+}
+.game-intro p:last-child{
+margin-bottom:0;
+}
+
+
+.language-mode{background:radial-gradient(circle at 50% 0%, rgba(185,28,28,.22), transparent 35%),linear-gradient(135deg, rgba(20,0,0,.75), #000 55%);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.language-title{font-size:82px;color:#f3f4f6;text-shadow:4px 4px 0 #400;letter-spacing:4px;}
+.language-slogan{font-size:24px;letter-spacing:3px;color:#aaa;margin:18px 0 34px;}
+.language-buttons{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;}
+.language-btn{width:220px;padding:18px 24px;border:1px solid #5a1515;border-radius:12px;background:#111;color:#eee;font-family:'Cormorant Garamond',serif;font-size:28px;cursor:pointer;box-shadow:0 0 25px rgba(185,28,28,.15);}
+.language-btn:hover{background:#240707;border-color:#b91c1c;}
+.game-intro{margin-top:22px;max-width:900px;background:transparent!important;border:none!important;border-radius:0!important;padding:0!important;box-shadow:none!important;text-align:center;}
+.game-intro:before{content:"EVERY MEAL LEAVES EVIDENCE. EVERY SYMPTOM TELLS A STORY.";display:block;font-size:18px;letter-spacing:4px;color:#888;margin-bottom:14px;}
+.game-intro:after{content:"";display:block;height:1px;background:#444;margin-top:14px;}
+.game-intro p:first-child{border-top:1px solid #444;padding-top:16px;}
+
+
+/* Bilingual language start screen polish */
+body.lang-screen .sidebar{
+display:none;
+}
+body.lang-screen .container{
+display:block;
+height:100vh;
+}
+body.lang-screen .main{
+width:100%;
+height:100vh;
+}
+body.zh-font,
+body.zh-font .main,
+body.zh-font .btn,
+body.zh-font .option,
+body.zh-font .question{
+font-family:"LXGW WenKai","Ma Shan Zheng","KaiTi","STKaiti","Source Han Serif SC","Noto Serif SC","Songti SC","Microsoft YaHei",serif;
+}
+.language-mode{
+padding:44px;
+}
+.language-title{
+font-size:54px;
+animation:terrorFlicker 3.2s infinite;
+}
+.language-slogan{
+font-size:20px;
+letter-spacing:2px;
+color:#aaa;
+animation:minorFlicker 4.6s infinite;
+}
+.language-prompt{
+font-size:20px;
+letter-spacing:3px;
+color:#d1d5db;
+margin-bottom:20px;
+text-shadow:0 0 16px rgba(185,28,28,.35);
+}
+.language-note{
+font-size:16px;
+letter-spacing:2px;
+color:#777;
+margin-top:22px;
+}
+@keyframes terrorFlicker{
+0%,18%,22%,25%,53%,57%,100%{
+opacity:1;
+text-shadow:4px 4px 0 #400,0 0 18px rgba(255,40,40,.55),0 0 45px rgba(185,28,28,.35);
+}
+20%,24%,55%{
+opacity:.38;
+text-shadow:2px 2px 0 #200,0 0 6px rgba(255,40,40,.25);
+}
+}
+@keyframes minorFlicker{
+0%,48%,52%,100%{opacity:1}
+50%{opacity:.45}
+}
+body.zh-font .language-title{
+font-size:42px;
+letter-spacing:3px;
+}
+body.zh-font .language-slogan{
+font-size:15px;
+letter-spacing:1px;
+}
+body.zh-font .language-btn{
+font-size:24px;
+}
+
+
+/* Horror game glitch title */
+.language-title{
+position:relative;
+display:inline-block;
+text-transform:uppercase;
+animation:glitchBase 2.8s infinite;
+}
+.language-title:before,
+.language-title:after{
+content:"DIETECTIVE";
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+opacity:.75;
+pointer-events:none;
+}
+.language-title:before{
+transform:translate(2px,-1px);
+color:#ff2b2b;
+clip-path:inset(0 0 55% 0);
+animation:glitchSliceRed 2.1s infinite steps(2,end);
+}
+.language-title:after{
+transform:translate(-2px,1px);
+color:#8b0000;
+clip-path:inset(55% 0 0 0);
+animation:glitchSliceDark 1.7s infinite steps(2,end);
+}
+@keyframes glitchBase{
+0%,7%,12%,100%{transform:none;filter:none}
+8%{transform:skewX(8deg);filter:contrast(1.4)}
+9%{transform:translateX(-3px)}
+10%{transform:translateX(3px)}
+11%{transform:none}
+48%{text-shadow:4px 4px 0 #400,0 0 24px rgba(255,0,0,.7)}
+49%{text-shadow:-4px 0 0 #500,4px 0 0 #111}
+50%{text-shadow:2px 2px 0 #400}
+}
+@keyframes glitchSliceRed{
+0%,15%,18%,42%,45%,100%{clip-path:inset(0 0 58% 0);transform:translate(2px,-1px)}
+16%{clip-path:inset(12% 0 63% 0);transform:translate(7px,-2px)}
+43%{clip-path:inset(0 0 78% 0);transform:translate(-6px,1px)}
+}
+@keyframes glitchSliceDark{
+0%,20%,23%,61%,65%,100%{clip-path:inset(55% 0 0 0);transform:translate(-2px,1px)}
+21%{clip-path:inset(70% 0 8% 0);transform:translate(-8px,2px)}
+62%{clip-path:inset(42% 0 35% 0);transform:translate(6px,-1px)}
+}
+body.zh-font .language-prompt,
+body.zh-font .language-note,
+body.zh-font .language-btn,
+body.zh-font .language-slogan{
+font-family:"LXGW WenKai","Ma Shan Zheng","KaiTi","STKaiti","Source Han Serif SC","Noto Serif SC","Songti SC","Microsoft YaHei",serif;
+}
+
+
+.zh-inline{
+font-family:"LXGW WenKai","Ma Shan Zheng","KaiTi","STKaiti","Source Han Serif SC","Noto Serif SC","Songti SC","Microsoft YaHei",serif;
+}
+
+
+.language-btn.zh-btn{
+font-family:"LXGW WenKai","Ma Shan Zheng","KaiTi","STKaiti","Source Han Serif SC","Noto Serif SC","Songti SC","Microsoft YaHei",serif !important;
+font-size:24px;
+}
+
+
+/* Smaller in-game evidence images */
+.main:not(.case-select-mode):not(.language-mode) img.evidence{
+width:58%;
+max-width:600px;
+min-width:340px;
+height:auto;
+display:block;
+margin:20px auto 24px;
+object-fit:cover;
+}
+.opening-mode img.evidence{
+max-width:620px !important;
+width:60% !important;
+}
+.investigation-mode img.evidence{
+max-width:560px !important;
+width:56% !important;
+}
+.takeaway-mode img.evidence{
+display:none !important;
+}
+@media (max-width:900px){
+.main:not(.case-select-mode):not(.language-mode) img.evidence{
+width:78% !important;
+max-width:560px !important;
+min-width:0;
+}
+}
+@media (max-width:600px){
+.main:not(.case-select-mode):not(.language-mode) img.evidence{
+width:92% !important;
+max-width:360px !important;
+min-width:0;
+}
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+<div class="sidebar">
+<div class="logo">CASE FILES</div>
+<div class="sub">DIETECTIVE DATABASE</div>
+<div id="files"></div>
+</div>
+<div id="main" class="main">
+<div class="warning">CONFIDENTIAL INVESTIGATION FILE</div>
+<div id="title" class="title"></div>
+<div id="story" class="story"></div>
+<img id="img" class="evidence" />
+<div id="area"></div>
+</div>
+</div>
+
+<script>
+const casesEN=[
+{
+caseTitle:"Attempted Murder by a Green Smoothie",
+caseLabel:"Case 1",
+id:"case1_green_smoothie",
+cover:"https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=1200",
+summary:"A healthy drink hides a dangerous nutrition pattern.",
+steps:[
+{title:"Opening",img:"https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?q=80&w=1200",
+text:`9:36 PM. Backstage of the school's sustainable food exhibition.
+
+Anthony suddenly crouched down, clutching the right side of his abdomen. His face turned pale.
+
+"It feels like knives are cutting inside me," he kept saying.
+
+Twenty minutes later, he was taken to the emergency room.
+
+Medical notes:
+
+- Severe abdominal and flank pain
+- Nausea
+- Blood in urine
+
+Only one unfinished green smoothie remained on the table.
+
+A label on the bottle read:
+
+"All Natural"
+"No Sugar"
+"Antioxidant"
+"Detox"
+
+MISSION:
+
+Find out what this "healthy drink" was really hiding.`},
+
+{title:"Investigation 1",img:"https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=1200",
+text:`Evidence found backstage:
+
+- One 1L green smoothie
+- One bag of almonds
+- Half a bar of 85% dark chocolate
+- A card labeled "No Sugar Challenge - Day 6"
+- Three empty spinach packages in the trash
+
+Everything looked healthy.`,
+q:"Based on these clues, Anthony's illness is:",
+o:["Food poisoning","Deliberate poisoning","Stomach flu","Not enough evidence yet"],a:3,
+e:`Detectives should never jump to conclusions from a single clue.
+
+Food poisoning usually affects multiple people. Poisoning requires evidence of suspicious substances. Stomach flu must also match the symptoms.`},
+
+{title:"Investigation 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",
+text:`Hospital records:
+
+- Severe one-sided flank pain
+- Pain came in waves
+- Nausea
+- Blood in urine
+- No fever
+- No group vomiting or diarrhea`,
+q:"What type of problem does this resemble?",
+o:["Food poisoning","Kidney stone or urinary system problem","Spinach allergy","Stomach pain caused by cold drinks"],a:1,
+e:`The key is not simply what he ate.
+
+Pain location, blood in urine, and whether multiple people became sick are much more important.
+
+A single person with severe flank pain and blood in urine does not resemble typical food poisoning.`},
+
+{title:"Investigation 3",img:"https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1200",
+text:`One classmate said:
+
+"I figured it out! Spinach and milk cannot be eaten together. The internet says they cause kidney stones!"
+
+Smoothie recipe:
+
+- 250 g spinach
+- 400 mL almond milk
+- 1 banana
+- 2 spoons of cocoa powder
+- 1 spoon of chia seeds
+- 1 spoon of beetroot powder
+- 1 vitamin C tablet
+- Ice`,
+q:"What is the most scientific concern?",
+o:["Spinach and milk should never be consumed together","One spinach smoothie always causes kidney stones","Multiple high-oxalate ingredients were consumed in large amounts for many days","Bananas and cocoa powder are incompatible"],a:2,
+e:`The issue is dosage and frequency, not food incompatibility.
+
+Occasionally eating spinach or drinking milk is usually fine.
+
+The problem is consuming large amounts of spinach, almonds, cocoa, and beetroot every day in a 1L smoothie.`},
+
+{title:"Investigation 4",img:"https://images.unsplash.com/photo-1528825871115-3581a5387919?q=80&w=1200",
+text:`Shopping records:
+
+Day 1 to Day 6:
+One large bag of spinach purchased every day.
+
+Anthony posted online:
+
+"Eating vegetables normally is too difficult. Blending everything into a smoothie is much easier."
+
+A friend added:
+
+"He could never eat this much food in a normal meal, but he could drink it easily."`,
+q:"Why does blending food into a smoothie change the risk?",
+o:["Blending makes food poisonous","Liquids make it easier to consume large amounts quickly","Smoothies have no nutrients","Green foods are dangerous"],a:1,
+e:`Smoothies can hide extremely large amounts of food.
+
+A plate of spinach might feel impossible to finish, but a large smoothie can be consumed in minutes.`},
+
+{title:"Investigation 5",img:"https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200",
+text:`Weekly schedule:
+
+- Basketball training for two hours every afternoon
+- Often skipped dinner and only drank smoothies afterward
+- Daily water intake: approximately 600-800 mL
+- Believed smoothies counted as water
+- Very hot weather recently`,
+q:"Why is this clue important?",
+o:["Heavy sweating and low water intake make urine more concentrated","Basketball turns spinach into oxalate","Smoothies completely replace water","Hot weather creates food incompatibility"],a:0,
+e:`Kidney stone risk depends not only on food, but also on hydration.
+
+Concentrated urine makes crystal formation more likely.`},
+
+{title:"Investigation 6",img:"https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=1200",
+text:`More dietary records revealed:
+
+- Anthony stopped drinking milk
+- He avoided cheese and yogurt because he feared gaining weight
+- He used almond milk that contained no added calcium
+- He believed:
+
+"Kidney stones contain calcium, so eating less calcium must be safer."`,
+q:"Why is this idea incorrect?",
+o:["All calcium becomes kidney stones","Completely avoiding calcium is best","Adequate calcium can bind oxalate in the intestine and reduce absorption","Almond milk is always more dangerous than regular milk"],a:2,
+e:`Calcium is not automatically the enemy.
+
+Adequate dietary calcium can actually reduce oxalate absorption.`},
+
+{title:"Investigation 7",img:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200",
+text:`Anthony added one vitamin C tablet to his smoothie every day.
+
+He said:
+
+"Antioxidants are healthy, so more must be better."`,
+q:"How should this clue be interpreted?",
+o:["Vitamin C is poisonous","Vitamins should never be consumed","High-dose vitamin C supplements may increase risk in people prone to kidney stones","Vitamin C is incompatible with spinach"],a:2,
+e:`The issue is:
+
+Additional supplements + high doses + existing risk factors.
+
+For certain individuals, excessive vitamin C supplementation may increase kidney stone risk.`},
+
+{title:"Final Unravel",img:"https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=1200",
+text:`Hospital examination showed:
+
+CT scan:
+Small kidney stones detected.
+
+Urinalysis:
+Elevated red blood cells.
+
+Stone composition:
+Calcium oxalate.
+
+The doctor asked:
+
+"Have you recently consumed large amounts of spinach, nuts, chocolate, beetroot, or very little water?"
+
+Anthony fell silent.`,
+q:"What really caused the incident?",
+o:["Spinach and milk poisoning","Someone poisoned the smoothie","High-oxalate diet + dehydration + heavy sweating + calcium misconception + supplement stacking","Psychological stress"],a:2,
+e:"Correct."},
+
+{title:"Key Takeaways",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",
+text:`- Eating healthy depends on dosage.
+- Blending food into liquid can hide the true amount consumed.
+- Calcium in kidney stones does not mean calcium itself is the enemy.
+- Supplements are not always better in larger amounts.
+- Nutrition is about overall dietary patterns, not labeling foods as simply good or bad.`}
+]
+},
+{
+caseTitle:"Blue Lips at the Gym",
+caseLabel:"Case 2",
+id:"case2_blue_lips",
+cover:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1200",
+summary:"A workout turns dangerous after caffeine, fasting, sweat, and heat collide.",
+steps:[
+{title:"Opening",img:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1200",
+text:`8:12 PM. At a gym near campus.
+
+Kristine had just finished his fourth set of burpees when he suddenly grabbed the treadmill and crouched down.
+
+His face turned pale. His hands would not stop shaking.
+
+"My heart is beating way too fast," he said.
+
+Ten minutes late`},
+
+{title:"Investigation 1",img:"https://images.unsplash.com/photo-1593079831268-3381b0db4a77?q=80&w=1200",
+text:`Investigators found:
+
+- Half a bottle of pre-workout
+- Two empty energy drink cans
+- An unfinished protein bar
+- A completely soaked workout shirt
+- Training records showing:
+
+Before workout: 68.2 kg
+
+After workout: 66.9 kg`,
+q:"What appears most suspicious at first glance?",
+o:["The protein bar","The energy drinks and pre-workout","The wet workout shirt","Everything deserves further investigation"],a:3,
+e:`Good investigators avoid focusing on only one clue.
+
+At this stage, every piece of evidence matters.
+
+Exercise symptoms may result from multiple factors acting together, so premature conclusions can easily lead investigators in the wrong direction.`},
+
+{title:"Investigation 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",
+text:`Emergency room notes:
+
+- Rapid heartbeat
+- Shaking hands
+- Chest discomfort
+- Dizziness
+- No rash
+- No throat swelling
+- No group illness`,
+q:"Which explanation seems least likely?",
+o:["Excessive caffeine stimulation","Dehydration","Severe food allergy","Post-exercise low blood sugar"],a:2,
+e:`Severe allergic reactions often involve symptoms such as rash, throat swelling, or difficulty breathing.
+
+The current evidence points more toward cardiovascular and metabolic stress rather than an allergic reaction.`},
+
+{title:"Investigation 3",img:"https://images.unsplash.com/photo-1593095948071-474c5cc2989d?q=80&w=1200",
+text:`One friend said:
+
+"He recently started using protein powder. Maybe protein damaged his kidneys or poisoned him?"
+
+Investigators discovered:
+
+- He did not drink protein powder that day.
+- He only ate one bite of the protein bar.
+- His pre-workout contained 300 mg of caffeine per scoop.
+- Each energy drink contained 160 mg of caffeine.
+- He consumed two cans that day.`,
+q:"Which factor is actually more important?",
+o:["Protein intake","Total caffeine intake","The flavor of the protein bar","The zero-sugar label"],a:1,
+e:`Many people immediately blame protein powder.
+
+However, the more dangerous factor in this case was the combined caffeine intake.
+
+One scoop of pre-workout plus two energy drinks produced a level of stimulation far beyond his usual tolerance.`},
+
+{title:"Investigation 4",img:"https://images.unsplash.com/photo-1526401485004-2fda9f4d61f7?q=80&w=1200",
+text:`Chat history revealed:
+
+"My energy drink is sugar-free, so it should be harmless."
+
+"Pre-workout is made for fitness. Stronger must mean better."
+
+"Skipping meals helps burn fat faster."`,
+q:"What is the biggest misconception here?",
+o:["Sugar-free drinks have no physiological effects","Fitness supplements are completely risk-free","Fasted training is always healthier","All of the above are misconceptions"],a:3,
+e:`Sugar-free does not mean stimulant-free.
+
+Fitness supplements are not automatically safe when combined without limits.
+
+For some individuals, intense exercise while fasting may increase the risk of dizziness, palpitations, and low blood sugar.`},
+
+{title:"Investigation 5",img:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1200",
+text:`Daily timeline:
+
+Morning:
+- Black coffee only
+
+Lunch:
+- Half a salad
+
+Afternoon:
+- One energy drink
+
+Before training:
+- One scoop of pre-workout
+
+During training:
+- Another energy drink
+
+After training:
+- Twenty minutes in the sauna`,
+q:"Which combination is the most dangerous?",
+o:["Salad and protein bar","Fasting + high caffeine intake + intense exercise + sauna","Black coffee and water","Tight shoes"],a:1,
+e:`Individual factors may seem harmless by themselves.
+
+However, stacking multiple stressors together can dramatically increase risk.
+
+Fasting, dehydration, excessive caffeine, intense exercise, and heat exposure all place additional strain on the cardiovascular system.`},
+
+{title:"Investigation 6",img:"https://images.unsplash.com/photo-1576678927484-cc907957088c?q=80&w=1200",
+text:`His coach said:
+
+"He lost more than one kilogram today and was really happy about it."
+
+"He thought it meant he had burned a lot of fat."`,
+q:"What does rapid weight loss during a workout usually represent?",
+o:["Massive fat loss","Water loss","Muscle gain","Lighter bones"],a:1,
+e:`Short-term weight changes are usually caused by water loss, not sudden fat loss.
+
+Mistaking dehydration for successful fat burning may encourage people to continue unsafe behaviors.`},
+
+{title:"Final Unravel",img:"https://images.unsplash.com/photo-1512678080530-7760d81faba6?q=80&w=1200",
+text:`After treatment:
+
+- Symptoms improved after intravenous fluids.
+- Heart monitoring showed no persistent severe heart disease.
+- Doctors asked about caffeine, supplements, exercise habits, and sauna use.
+
+Kristine quietly replied:
+
+"I just wanted to train more effectively."`,
+q:"What most likely caused the incident?",
+o:["Protein powder poisoning","Deliberate poisoning","Fasting, excessive caffeine, dehydration, and electrolyte imbalance","Incompatibility between sugar-free drinks and protein bars"],a:2,
+e:`The incident was not caused by a single "bad food."
+
+Instead, multiple stressors accumulated at the same time:
+
+- High caffeine intake
+- Inadequate food intake
+- Heavy sweating
+- Fluid loss
+- Sauna exposure
+
+Together, these factors created a dangerous physiological situation.`},
+
+{title:"Key Takeaways",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",
+text:`- Sugar-free does not mean risk-free.
+- Supplements can become dangerous when stacked together.
+- Short-term weight loss is usually water loss, not fat loss.
+- Fasting and intense exercise are not always the healthiest combination.
+- Nutrition and fitness should focus on overall balance rather than extreme strategies.`}
+]
+},
+{
+caseTitle:"The Vegan Club Staircase Accident",
+caseLabel:"Case 3",
+id:"case3_vegan_staircase",
+cover:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200",
+summary:"A vegan challenge turns dangerous when restriction, low energy, and nutrient gaps collide.",
+steps:[
+{title:"Opening",img:"https://images.unsplash.com/photo-1490818387583-1baba5e638af?q=80&w=1200",
+text:`3:25 PM. Third floor of the school building.
+
+Tang You had just walked out of class when she suddenly grabbed the stair railing.
+
+"Everything went black for a second," she said.
+
+The next moment, she fell down several steps.
+
+Hospital examination showed:
+- A fractured wrist
+- Low hemoglobin
+
+Inside her backpack, investigators found a booklet:
+
+"21-Day Clean Plant-Based Eating Challenge"
+
+MISSION:
+
+Find out whether she fainted from low blood sugar, anemia, stress, or a deeper nutrition problem.`},
+
+{title:"Investigation 1",img:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200",
+text:`Investigators reviewed what she ate that day:
+
+Breakfast:
+- Oat milk latte
+
+Lunch:
+- Lettuce
+- Tomato
+- A small amount of quinoa
+
+Afternoon:
+- One cup of strong tea
+
+Dinner plan:
+- Konjac noodles`,
+q:"At first glance, what is the most obvious problem?",
+o:["Vegan diets are impossible","Her total energy intake may be too low","Tomatoes are poisonous","Quinoa cannot be eaten"],a:1,
+e:`She did not seem to eat something spoiled.
+
+The first clue is that she may have been eating too little for too long.`},
+
+{title:"Investigation 2",img:"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200",
+text:`Recent notes from Tang You:
+
+- Easily tired
+- Rapid heartbeat when climbing stairs
+- Pale face
+- Dizziness when standing up
+- Brittle nails
+- Heavy menstrual bleeding`,
+q:"What do these clues most resemble?",
+o:["Ordinary food poisoning","Anemia or nutrient deficiency","Food incompatibility","Eating too much fruit"],a:1,
+e:`These symptoms point toward anemia and nutritional deficiency.
+
+The fall was likely not just a random accident.`},
+
+{title:"Investigation 3",img:"https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=1200",
+text:`A classmate said:
+
+"I told you vegan diets are unhealthy. Eating vegan must cause anemia."
+
+Investigators found another member of the vegan club.
+
+She also followed a vegan diet, but she ate:
+- Tofu
+- Beans
+- Fortified soy milk
+- Nuts
+- Dark leafy vegetables
+- Vitamin B12 supplements
+
+Her health checkup was normal.`,
+q:"What is the more accurate judgment?",
+o:["All vegan diets are dangerous","Tang You's vegan diet was not well planned","Eating vegetables causes fractures","Vegan people can never exercise"],a:1,
+e:`This case should not become a trial against vegan diets.
+
+The real problem is that Tang You misunderstood vegan eating as eating less, eating lightly, and detoxing.
+
+A vegan diet needs planning to cover key nutrients.`},
+
+{title:"Investigation 4",img:"https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1200",
+text:`Investigators noticed her habit:
+
+She drank strong tea immediately after lunch every day.
+
+She said:
+
+"Tea feels refreshing, and it helps cut oil."
+
+Her main iron sources were:
+- Spinach
+- Lettuce
+- Quinoa
+- Beans`,
+q:"What is the problem with this habit?",
+o:["Tea makes all nutrients disappear","Strong tea after meals may reduce absorption of plant-based iron","Spinach has no nutrients","Tea and quinoa are incompatible"],a:1,
+e:`Plant-based iron is non-heme iron, which is generally absorbed less efficiently than iron from animal foods.
+
+Drinking a large amount of strong tea immediately after meals may further reduce iron absorption.`},
+
+{title:"Investigation 5",img:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",
+text:`Shopping records showed:
+
+- Lettuce
+- Konjac noodles
+- Oat milk
+- Cucumber
+- Tomato
+- Low-calorie dressing
+
+No fortified foods.
+
+No vitamin B12 supplement.`,
+q:"Which nutrient requires special attention in a vegan diet?",
+o:["Vitamin B12","Vitamin C","Water","Dietary fiber"],a:0,
+e:`Vitamin B12 mainly comes from animal foods or fortified foods and supplements.
+
+A long-term vegan diet without B12 supplementation may create a deficiency risk.`},
+
+{title:"Investigation 6",img:"https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200",
+text:`Investigators estimated:
+
+She ate about 900 to 1100 kcal per day.
+
+At the same time, she had dance training for 1.5 hours every day.
+
+She said:
+
+"The cleaner I eat, the better. Feeling hungry means my body is detoxing."`,
+q:"What is the biggest misconception here?",
+o:["Hunger means detox","Exercise does not require energy","Very low calories are always healthy","All of the above"],a:3,
+e:`She mistook energy deficiency for a sign of health.
+
+Hunger, fatigue, and dizziness are not proof that the body is detoxing.`},
+
+{title:"Final Unravel",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",
+text:`Hospital examination showed:
+
+- Low hemoglobin
+- Low ferritin
+- Low vitamin B12
+
+The doctor recommended adjusting her diet structure and supplementing relevant nutrients based on test results.
+
+Tang You said:
+
+"I thought I was eating very healthy."`,
+q:"What most likely caused the accident?",
+o:["Veganism itself made her fall","She was poisoned","Unplanned vegan diet + low energy intake + iron/B12 risk + strong tea after meals reducing absorption","Vegetables and tea are incompatible"],a:2,
+e:`The accident was not caused by veganism itself.
+
+It was caused by an unplanned restrictive diet, low total energy intake, iron and B12 risks, and habits that weakened nutrient absorption.`},
+
+{title:"Key Takeaways",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",
+text:`- Healthy eating does not mean eating less and less.
+- Vegan diets are not the problem; unplanned restrictive diets are the problem.
+- Plant-based iron, vitamin B12, and total energy intake need careful planning.
+- "Clean eating" should not become a reason to ignore hunger, fatigue, or dizziness.
+- Nutrition is about structure, balance, and adequacy, not simply restriction.`}
+]
+},
+{
+caseTitle:"The Victim of Overnight Fried Rice",
+caseLabel:"Case 4",
+id:"case4_overnight_fried_rice",
+cover:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=1200",
+summary:"A food festival meal becomes dangerous after hours in a warm backpack.",
+steps:[
+{title:"Opening",img:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=1200",
+text:`1:40 AM. Dormitory building.
+
+Callum rushed into the bathroom and vomited again and again.
+
+His face was pale. His stomach cramped sharply.
+
+His roommate said:
+
+"He only ate a box of fried rice he brought back tonight."
+
+On the desk, investigators found a takeout box with a food festival label:
+
+"Golden Egg Fried Rice - Freshly Made Today"
+
+MISSION:
+
+Find out why Callum was the only one who got sick.`},
+
+{title:"Investigation 1",img:"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1200",
+text:`Investigators found:
+
+- Half a box of fried rice
+- A microwave
+- Dorm room temperature: 27 degrees Celsius
+- Food festival coupons in the trash
+- Condensation on the bottom of the fried rice container`,
+q:"At first glance, what is the most likely suspicion?",
+o:["The fried rice itself was poisonous","A food festival group food poisoning event","The storage and reheating process may have been unsafe","Eggs and rice cannot be eaten together"],a:2,
+e:`The key may not be how the food was originally cooked.
+
+The real question is how the leftovers were stored afterward.`},
+
+{title:"Investigation 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",
+text:`Doctor's notes:
+
+- The main symptom was sudden vomiting.
+- Symptoms appeared quickly.
+- No obvious high fever.
+- Most other customers from the same stall were fine.`,
+q:"What does this suggest?",
+o:["It must be deliberate poisoning","The problem may not have been caused by the stall at the time of serving","Rice can never be eaten","Egg allergy"],a:1,
+e:`Not everyone who ate the fried rice got sick.
+
+That means investigators need to examine Callum's personal handling process after he bought the food.`},
+
+{title:"Investigation 3",img:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",
+text:`Investigators reconstructed the timeline:
+
+4:00 PM:
+Callum bought the fried rice.
+
+5:00 PM:
+He ate half of it.
+
+5:30 PM:
+He put the leftovers into his backpack.
+
+9:30 PM:
+He brought it back to the dorm.
+
+11:40 PM:
+He microwaved it for 40 seconds.
+
+12:00 AM:
+He finished eating it.
+
+1:40 AM:
+He started vomiting.`,
+q:"Which time period is the most suspicious?",
+o:["Before he bought the rice","The hours when the rice sat at room temperature in his backpack","When the microwave was running","When he used a spoon"],a:1,
+e:`Cooked rice stayed in a warm environment for several hours.
+
+That storage period is a major clue.`},
+
+{title:"Investigation 4",img:"https://images.unsplash.com/photo-1585659722983-3a675dabf23d?q=80&w=1200",
+text:`A roommate said:
+
+"But he microwaved it. How could there still be a problem?"
+
+Investigators checked the leftovers:
+
+- The center of the rice was warm, not hot.
+- He only reheated it for 40 seconds.
+- The rice was clumped together.
+- Heating was uneven.`,
+q:"Why does reheating not always solve the problem?",
+o:["Microwaves create toxins","Heating may be uneven, and some bacterial toxins are not easily removed by simple reheating","Rice loses all nutrients after reheating","Eggs become poisonous when heated"],a:1,
+e:`Reheating is not a universal undo button.
+
+If food was stored unsafely for too long, a short and uneven reheating may not make it safe again.`},
+
+{title:"Investigation 5",img:"https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=1200",
+text:`System evidence card:
+
+Cooked starch foods such as rice and noodles may become risky if they stay in a warm environment for too long after cooking.
+
+The problem is not that rice is poisonous.
+
+The problem is cooked rice staying in the temperature danger zone for too long.`,
+q:"What is the real keyword in this case?",
+o:["Food incompatibility","Cooked food storage","Overnight rice can never be eaten","The fried rice was too yellow"],a:1,
+e:`Not all overnight rice is dangerous.
+
+The key questions are:
+
+- Was it refrigerated quickly?
+- Was it stored for too long?
+- What was the temperature?
+- Was it reheated thoroughly?
+
+The risk comes from storage conditions, not simply from the word "overnight."`},
+
+{title:"Investigation 6",img:"https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?q=80&w=1200",
+text:`Investigators found another student who ate fried rice from the same stall.
+
+He put his leftovers into the refrigerator within 30 minutes.
+
+The next day, he reheated them thoroughly and felt fine.`,
+q:"What does this comparison show?",
+o:["Callum was simply weak","The stall was definitely not responsible","Storage method may have been the decisive difference","A refrigerator can make any bad food safe again"],a:2,
+e:`The same food can lead to different outcomes depending on how it is stored.
+
+Different storage methods can create very different risks.`},
+
+{title:"Final Unravel",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",
+text:`Dormitory security footage showed:
+
+Callum's fried rice stayed in his backpack for about four hours.
+
+The weather was hot that day.
+
+Later, he only reheated it briefly.
+
+Doctors judged that the symptoms matched an acute foodborne gastrointestinal reaction.`,
+q:"What most likely caused the incident?",
+o:["Fried rice and eggs are incompatible","Someone poisoned him","Cooked rice was left at room temperature too long, stored improperly, then eaten after simple reheating","Rice itself cannot be eaten"],a:2,
+e:`The incident was not caused by rice being naturally dangerous.
+
+The problem was improper storage of cooked rice, followed by brief and uneven reheating.`},
+
+{title:"Key Takeaways",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",
+text:`- Food safety does not only happen in the kitchen.
+- It also happens during the hours when leftovers sit in a backpack.
+- "I reheated it" does not always mean "it is safe."
+- Cooked food should be refrigerated as soon as possible.
+- Leftovers should be reheated thoroughly before eating.
+- The danger is not "overnight food" itself, but unsafe time and temperature control.`}
+]
+},
+{
+caseTitle:"The Emergency Bell Behind the Milk Tea Shop",
+caseLabel:"Case 5",
+id:"case5_milk_tea_emergency",
+cover:"https://images.unsplash.com/photo-1558857563-b371033873b8?q=80&w=1200",
+summary:"",
+steps:[
+{title:"Opening",img:"https://images.unsplash.com/photo-1558857563-b371033873b8?q=80&w=1200",
+text:`7:05 PM. Behind the counter of a milk tea shop.
+
+Eamon was about to move a box of tapioca pearls when he suddenly stopped and grabbed the table.
+
+The manager asked what was wrong.
+
+"I feel kind of weak," he said.
+
+The next second, he slipped, hit a shelf, and his forehead started bleeding.
+
+The strange part was this:
+
+Twenty minutes before the accident, he had just finished a large full-sugar milk tea.
+
+MISSION:
+
+Find out why Eamon acted like he had low blood sugar even though he had just consumed sugar.`},
+
+{title:"Investigation 1",img:"https://images.unsplash.com/photo-1525803377221-4f6ccdaa5133?q=80&w=1200",
+text:`Investigators found:
+
+- One empty full-sugar milk tea cup
+- An unopened sandwich
+- Two shift schedules
+- Water on the back-kitchen floor
+- A bag of syrup beside the cashier counter`,
+q:"What is the most obvious contradiction at first glance?",
+o:["He had just drunk a sweet drink, but said he felt weak","There was water on the back-kitchen floor","The sandwich was unopened","The milk tea was very sweet"],a:0,
+e:`Drinking sugar does not necessarily mean the body has received stable energy.
+
+That contradiction is the first clue.`},
+
+{title:"Investigation 2",img:"https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?q=80&w=1200",
+text:`Investigators reconstructed the timeline:
+
+Morning:
+- He was in a rush and skipped breakfast.
+
+Noon:
+- One iced Americano.
+
+Afternoon:
+- Half a cup of a new milk tea sample.
+
+6:40 PM:
+- One large full-sugar milk tea.
+
+7:05 PM:
+- Dizziness and fall.
+
+He had been standing at work for six hours that day.`,
+q:"What was the real problem?",
+o:["He consumed no calories at all","He consumed sugar, but lacked a stable meal","Milk tea and coffee are incompatible","Tapioca pearls are poisonous"],a:1,
+e:`He was using sweet drinks to replace real meals.
+
+Sugar intake alone does not provide the same stability as a balanced meal.`},
+
+{title:"Investigation 3",img:"https://images.unsplash.com/photo-1525385133512-2f3bdd039054?q=80&w=1200",
+text:`A coworker said:
+
+"Could the new milk tea be the problem? He tasted it earlier today."
+
+Investigators checked:
+
+- More than 80 customers ordered the same drink that day.
+- No group illness was reported.
+- Other employees also tasted the drink and felt fine.
+- Eamon was the only one who had barely eaten all day.`,
+q:"Which explanation is more reasonable?",
+o:["The milk tea itself was poisonous","His personal eating pattern that day was more important","All milk tea is dangerous","Milk tea and standing are incompatible"],a:1,
+e:`The milk tea was not the only factor.
+
+The more important clue is that it appeared in the wrong dietary context: almost no real food, long work hours, and physical fatigue.`},
+
+{title:"Investigation 4",img:"https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=1200",
+text:`System evidence card:
+
+High-sugar drinks can raise blood sugar relatively quickly.
+
+However, without protein, fat, fiber, and more stable carbohydrates, the energy may not last long.
+
+Some people may later feel hungrier, sleepier, weaker, or more unstable.`,
+q:"The problem with full-sugar milk tea is not only that it contains a lot of sugar. What else matters?",
+o:["It cannot replace a complete meal","It contains no calories at all","It will immediately cause diabetes","It is incompatible with ice"],a:0,
+e:`Liquid sugar cannot replace a stable meal.
+
+A drink may provide calories, but it does not provide the same nutrition structure or lasting energy as a balanced meal.`},
+
+{title:"Investigation 5",img:"https://images.unsplash.com/photo-1584982751601-97dcc096659c?q=80&w=1200",
+text:`The manager said:
+
+"He stood from 1 PM to 7 PM today and barely rested."
+
+"He said he was not hungry because the milk tea made him feel full."`,
+q:"What risk can long periods of standing increase?",
+o:["Dizziness, fatigue, and reduced attention","Immediate poisoning","Milk tea spoilage","Sugar disappearing"],a:0,
+e:`Long standing and physical fatigue can make the problem more obvious.
+
+When the body is under strain, an unstable eating pattern may become dangerous faster.`},
+
+{title:"Investigation 6",img:"https://images.unsplash.com/photo-1494390248081-4e521a5940db?q=80&w=1200",
+text:`Investigators checked his chat history:
+
+"I drank milk tea today, so my calories are already too high."
+
+"Skipping a meal can cancel it out."
+
+"Milk tea is pretty filling anyway."`,
+q:"What is wrong with this thinking?",
+o:["Calorie numbers do not fully represent nutrition structure","Milk tea calories can replace all nutrients","Skipping meals is always healthier","The sandwich would not help"],a:0,
+e:`A sweet drink and a real meal may have similar calories, but they are not nutritionally equivalent.
+
+They differ in satiety, blood sugar stability, protein, fiber, and micronutrients.
+
+He was only looking at calories, not nutrition structure.`},
+
+{title:"Final Unravel",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",
+text:`Hospital records showed:
+
+- Minor head injury
+- Blood sugar was low or close to low at the time
+- Symptoms improved after rest and food
+
+The doctor advised him to eat regular meals and avoid using sweet drinks as meal replacements.`,
+q:"What most likely caused the accident?",
+o:["Milk tea poisoning","Sugar and coffee incompatibility","Long hours without a real meal, unstable energy from sweet drinks, and standing fatigue leading to dizziness and injury","Tapioca pearls caused an acute illness"],a:2,
+e:`The accident was not caused by milk tea being poisonous.
+
+The problem was using sweet drinks instead of meals, combined with long standing, fatigue, and unstable energy.`},
+
+{title:"Key Takeaways",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",
+text:`- A high-sugar drink is not a meal.
+- Equal calories do not mean equal nutrition effects.
+- Feeling full from a drink does not mean the body has been properly fed.
+- Sweet drinks should not be used to replace regular meals.
+- Nutrition is about stability, structure, and adequacy, not just calorie numbers.`}
+]
+},
+{
+caseTitle:"Numb Fingers After the Party",
+caseLabel:"Case 6",
+id:"case6_numb_fingers_party",
+cover:"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=1200",
+summary:"",
+steps:[
+{title:"Opening",img:"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=1200",
+text:`11:50 PM. After a birthday party.
+
+Elowen suddenly sat down on the sofa and said:
+
+"My lips feel a little numb, and my hands feel numb too."
+
+Soon after, she developed stomach pain, nausea, and vomiting.
+
+On the table, investigators saw shrimp, cake, sugar-free gummies, zero-sugar cocktails, and iced coffee.
+
+A friend panicked:
+
+"Is this a seafood allergy?"
+
+MISSION:
+
+Find out what really caused Elowen's symptoms.`},
+
+{title:"Investigation 1",img:"https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=1200",
+text:`Investigators found:
+
+- Half a plate of shrimp
+- One unfinished piece of cake
+- Three empty bags of sugar-free gummies
+- Two cans of zero-sugar cocktails
+- One iced coffee`,
+q:"What are the suspicious possibilities at first glance?",
+o:["Seafood allergy","Alcohol","Sugar-free snacks","All of them deserve investigation"],a:3,
+e:`There are multiple misleading suspects at the party scene.
+
+A detective should not focus on only one clue too early.`},
+
+{title:"Investigation 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",
+text:`Doctor's notes:
+
+- Stomach pain
+- Bloating
+- Vomiting
+- Numb fingers and tingling lips
+- No obvious rash
+- No throat swelling
+- Normal breathing`,
+q:"Which suspect is becoming weaker?",
+o:["Severe seafood allergy","Gastrointestinal irritation","Alcohol and caffeine stacking","Fasting state"],a:0,
+e:`The case lacks common signs of a severe allergic reaction, such as rash, throat swelling, or breathing difficulty.
+
+Seafood allergy cannot be fully ignored yet, but it becomes less likely as the main explanation.`},
+
+{title:"Investigation 3",img:"https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?q=80&w=1200",
+text:`A friend said:
+
+"She felt sick after eating shrimp."
+
+Investigators checked:
+
+- She had eaten shrimp before without problems.
+- Many people ate shrimp that night, but only Elowen became sick.
+- She only ate two shrimp.
+- She finished three bags of sugar-free gummies.`,
+q:"What is more suspicious?",
+o:["Two shrimp","Three bags of sugar-free gummies","Cake candles","The color of the tableware"],a:1,
+e:`The unusual clue is the amount of sugar-free gummies.
+
+The dose matters more than the label on the front of the package.`},
+
+{title:"Investigation 4",img:"https://images.unsplash.com/photo-1581798459219-318e76aecc7b?q=80&w=1200",
+text:`Investigators checked the gummy packages.
+
+The labels said:
+
+"Sugar-free."
+
+"Low calorie."
+
+"28 g sugar alcohol per bag."
+
+Small warning text:
+
+"Excessive consumption may cause bloating or diarrhea."`,
+q:"What does sugar-free actually mean?",
+o:["It has no physiological effect","It contains no regular sugar, but may contain sugar alcohols or other sweeteners","It can be eaten without limit","It is always healthier than fruit"],a:1,
+e:`Sugar-free does not mean consequence-free.
+
+Some sugar-free products contain sugar alcohols, which may cause gastrointestinal symptoms when consumed in large amounts.`},
+
+{title:"Investigation 5",img:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",
+text:`Chat history revealed:
+
+"I am controlling sugar today, so I cannot eat cake."
+
+"Sugar-free gummies have no sugar, so they should not count."
+
+"I barely ate dinner because I was saving calories for drinks."`,
+q:"What is the nutrition misconception here?",
+o:["Controlling sugar means skipping proper meals","Sugar-free foods can be eaten without limit","Alcohol can replace dinner","All of the above"],a:3,
+e:`She treated marketing labels as nutrition judgment.
+
+Sugar-free snacks, skipped meals, and alcohol do not create a balanced eating pattern.`},
+
+{title:"Investigation 6",img:"https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=1200",
+text:`Investigators reconstructed the timeline:
+
+5:00 PM:
+- Iced coffee
+
+Dinner:
+- Almost nothing
+
+Party:
+- Two cans of zero-sugar cocktails
+
+Snacks:
+- Three bags of sugar-free gummies
+
+Afterward:
+- Stomach pain, numbness, and weakness`,
+q:"Why might the numb hands and tingling lips feel more obvious?",
+o:["Fasting, alcohol, caffeine, anxiety, and gastrointestinal discomfort stacked together","Shrimp and gummies are incompatible","The sugar-free label causes numbness","The cake was too sweet"],a:0,
+e:`One ingredient does not explain everything.
+
+The symptoms likely became more noticeable because multiple stressors stacked together: fasting, alcohol, caffeine, anxiety, and gastrointestinal discomfort.`},
+
+{title:"Final Unravel",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",
+text:`Doctors judged that:
+
+- The gastrointestinal reaction was obvious.
+- There was no strong evidence of severe allergy.
+- After asking about sugar-free candy and sugar alcohol intake, excessive sugar alcohol consumption became the most likely main trigger.
+- Elowen improved after rest and treatment.`,
+q:"What most likely caused the incident?",
+o:["Seafood allergy","Someone drugged the drink","A large amount of sugar alcohol from sugar-free gummies triggered gastrointestinal symptoms, while fasting, coffee, and alcohol worsened weakness and numbness","Shrimp and zero-sugar drinks are incompatible"],a:2,
+e:`The main problem was not seafood or deliberate poisoning.
+
+A large amount of sugar alcohol likely triggered the gastrointestinal reaction, while fasting, caffeine, alcohol, and anxiety made the overall condition worse.`},
+
+{title:"Key Takeaways",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",
+text:`- Sugar-free does not mean unlimited.
+- Food labels should be read carefully, including the small warning text.
+- Controlling sugar does not mean replacing meals with sugar-free snacks.
+- Marketing words are not the same as nutrition judgment.
+- Nutrition decisions should consider dose, context, and the whole day of eating.`}
+]
+},
+{
+caseTitle:"The Black Clue in the Iron Plan",
+caseLabel:"Case 7",
+id:"case7_iron_black_clue",
+cover:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200",
+summary:"",
+steps:[
+{title:"Opening",img:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200",
+text:`7:40 AM. Before school.
+
+Seren was getting ready for class when she suddenly crouched down, clutching her stomach.
+
+"My stomach feels like it is being twisted," she said.
+
+Her mother noticed that her stool had recently become very dark and immediately took her to the hospital.
+
+On Seren's desk, investigators found three things:
+
+Iron supplements.
+
+Calcium tablets.
+
+Strong tea.
+
+MISSION:
+
+Decide whether this was gastrointestinal bleeding, food poisoning, or a problem with how she was taking iron.`},
+
+{title:"Investigation 1",img:"https://images.unsplash.com/photo-1471864190281-a93a3070b6de?q=80&w=1200",
+text:`Investigators found:
+
+- A bottle of iron supplements
+- Calcium tablets
+- One cup of strong tea
+- Black coffee
+- A memo that said:
+
+"I am iron deficient. Taking more should help me recover faster."`,
+q:"What deserves investigation at first glance?",
+o:["Whether she was taking iron incorrectly","Whether she took substances that affected absorption at the same time","Whether dark stool always means serious bleeding","All of the above"],a:3,
+e:`An iron supplement case is not only about whether someone took iron.
+
+Investigators must also ask how much, when, and with what.`},
+
+{title:"Investigation 2",img:"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200",
+text:`Doctor's notes:
+
+- Stomach pain
+- Nausea
+- Dark stool
+- No obvious high fever
+- No group illness
+- Recently started taking iron supplements`,
+q:"Which piece of information is most important?",
+o:["She recently started iron supplements","She drinks tea","She goes to class","She wears a school uniform"],a:0,
+e:`The timing matters.
+
+Her symptoms appeared after she recently started taking iron supplements.`},
+
+{title:"Investigation 3",img:"https://images.unsplash.com/photo-1583947581924-860bda6a26df?q=80&w=1200",
+text:`Her family was very worried.
+
+"Does dark stool always mean stomach bleeding?"
+
+Investigators found:
+
+- Seren had recently started taking iron supplements.
+- Doctors noted that iron supplements may darken stool color.
+- However, stomach pain and nausea still needed careful medical evaluation.`,
+q:"What is the correct judgment?",
+o:["Dark stool is always harmless","Dark stool always means severe bleeding","Iron supplements may darken stool, but symptoms still need to be evaluated by a doctor","Black food poisoning"],a:2,
+e:`The black clue can be frightening, but it may also be caused by iron supplements.
+
+Still, symptoms such as stomach pain and nausea should not be ignored.`},
+
+{title:"Investigation 4",img:"https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=1200",
+text:`Investigators checked the supplement bottle.
+
+Recommended dose:
+- One tablet per day
+
+Seren's actual use:
+- One tablet in the morning
+- One tablet at night
+- Sometimes taken on an empty stomach
+
+She said:
+
+"I wanted to restore my iron faster."`,
+q:"What is the biggest problem here?",
+o:["Iron is completely useless","Iron deficiency should be fixed by taking more and more","Excessive or improper iron use may irritate the gastrointestinal tract","Iron and water are incompatible"],a:2,
+e:`Correcting a deficiency is not a speed game.
+
+The dose should not be doubled casually, especially without medical guidance.`},
+
+{title:"Investigation 5",img:"https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1200",
+text:`Investigators discovered her routine:
+
+Morning:
+- Iron supplement + milk + calcium tablet
+
+Noon:
+- Strong tea after lunch
+
+Night:
+- Iron supplement + coffee
+
+She said:
+
+"I take iron every day anyway."`,
+q:"What does this suggest?",
+o:["Taking iron always means good absorption","Calcium, tea, and coffee may affect iron absorption","Milk turns iron supplements into poison","Iron and tea are so incompatible that they can never appear on the same day"],a:1,
+e:`Taking iron does not guarantee good absorption.
+
+Calcium, tea, and coffee may interfere with iron absorption when taken too close to the supplement.`},
+
+{title:"Investigation 6",img:"https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200",
+text:`Investigators reviewed her health and lifestyle records:
+
+- Heavy menstrual bleeding
+- Recently eating less red meat for fat loss
+- Often skipping breakfast
+- Only drinking tea-based beverages after exercise`,
+q:"Besides taking supplements, what else should be investigated?",
+o:["Diet structure and causes of iron loss","Her phone model","The color of her teacup","Whether she dislikes milk"],a:0,
+e:`A nutrient deficiency needs a cause.
+
+It should not be handled only by swallowing supplements and ignoring the larger pattern.`},
+
+{title:"Final Unravel",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",
+text:`Doctors concluded:
+
+- Her gastrointestinal discomfort was related to improper iron supplement use.
+- The dark stool may have been related to iron, but necessary checks were still performed.
+- Doctors advised adjusting the dose and timing according to medical instructions.
+- They also advised avoiding drinks that interfere with absorption when taking iron.
+- Seren was told to improve her diet structure and return for follow-up testing.`,
+q:"What most likely caused the incident?",
+o:["Black food poisoning","Simple severe gastrointestinal bleeding","Increasing the iron dose on her own, taking it on an empty stomach, and pairing it poorly with tea, coffee, and calcium tablets, causing gastrointestinal irritation and poor absorption","Iron and milk are incompatible, so iron should never be taken"],a:2,
+e:`The problem was not that iron is bad.
+
+The problem was improper dose, timing, and pairing, while the original cause of deficiency still needed attention.`},
+
+{title:"Key Takeaways",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",
+text:`- Deficiency does not mean "take as much as possible."
+- Supplements require attention to dose, timing, and food or drink pairing.
+- Taking a supplement does not guarantee absorption.
+- A nutrient deficiency needs a cause, not just a bottle.
+- Medical symptoms should be evaluated carefully instead of guessed from one clue.`}
+]
+}
+];
+
+const casesZH=[
+{caseTitle:"绿色饮料杀人未遂",caseLabel:"案件 1",id:"case1_green_smoothie",cover:"https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=1200",summary:"",steps:[
+{title:"开场",img:"https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?q=80&w=1200",text:`晚上 9:36，学校环保社的健康饮食展演后台。
+
+Anthony 突然捂着右下腹蹲在地上，脸色发白。
+
+他一直说："像有刀在里面划。"
+
+20 分钟后，他被送进急诊。
+
+医生记录：
+
+- 剧烈腰腹痛
+- 恶心
+- 尿液带血
+
+桌上只剩下一瓶没喝完的绿色奶昔。
+
+瓶身贴着标签：
+
+"纯天然"
+"无糖"
+"抗氧化"
+"排毒"
+
+任务：
+
+找出这瓶"健康饮料"到底隐藏了什么。`},
+{title:"调查 1",img:"https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=1200",text:`玩家看到：
+
+- 一瓶 1L 的绿色奶昔
+- 一包杏仁
+- 半块 85% 黑巧克力
+- 一个写着"无糖健康挑战 Day 6"的打卡牌
+- 垃圾桶里有 3 个菠菜包装袋
+
+但这些食材看起来都很健康。`,q:"从这些线索可以诊断出 Anthony 的病因是：",o:["食物中毒","被投毒","普通肠胃炎","还不能下结论"],a:3,e:`侦探不能只看"绿色饮料"就下结论。
+
+食物中毒通常会让多人中招，投毒需要寻找异常添加物，肠胃炎也要看症状是否匹配。`},
+{title:"调查 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",text:`医生记录：
+
+- 剧烈单侧腰腹痛
+- 疼痛一阵一阵加重
+- 恶心
+- 尿液带血
+- 没有明显发烧
+- 没有多人同时腹泻呕吐`,q:"这像哪一类问题？",o:["普通食物中毒","肾结石或泌尿系统问题","对菠菜过敏","喝冷饮导致胃疼"],a:1,e:`重点不是"他吃了什么之后肚子疼"，而是疼痛位置、尿血、是否多人发病。
+
+如果只有他一个人剧烈腰腹痛并尿血，就不像典型集体食物中毒。`},
+{title:"调查 3",img:"https://images.unsplash.com/photo-1505751172876-fa1923c5c528?q=80&w=1200",text:`同学说：
+
+"我知道了！他奶昔里有菠菜和牛奶，这两个是不是相克？网上说会结石！"
+
+奶昔配方：
+
+- 菠菜 250g
+- 杏仁奶 400ml
+- 香蕉 1 根
+- 可可粉 2 勺
+- 奇亚籽 1 勺
+- 甜菜根粉 1 勺
+- 维生素 C 泡腾片 1 片
+- 冰块`,q:"现在最科学的怀疑是什么？",o:["菠菜和牛奶相克，所以任何人都不能一起吃","单次喝菠菜牛奶一定会结石","配方里高草酸食材太集中，且连续多天大量摄入","香蕉和可可粉相克"],a:2,e:`不是"相克"，而是剂量和频率。
+
+偶尔吃菠菜、喝牛奶通常不是问题。但把大量菠菜、杏仁、可可、甜菜根这些高草酸食物天天打成 1L 奶昔就成了问题。`},
+{title:"调查 4",img:"https://images.unsplash.com/photo-1528825871115-3581a5387919?q=80&w=1200",text:`购物记录：
+
+Day 1 到 Day 6：每天买一大袋菠菜。
+
+Anthony 发帖说：
+
+"直接吃太难了，打成奶昔一口气喝完最方便。"
+
+同学补充：
+
+"他以前一顿吃不了多少菜，但奶昔可以灌下去。"`,q:"为什么打成奶昔会改变风险？",o:["搅拌机会把食物变毒","液体更容易让人短时间摄入大量食材","奶昔没有营养","绿色食物都危险"],a:1,e:`奶昔让人不知不觉摄入远超平常咀嚼量的食材。一盘菠菜可能吃不下，但一大杯奶昔很容易喝完。`},
+{title:"调查 5",img:"https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200",text:`玩家查看他这周的日程：
+
+- 每天下午篮球训练 2 小时
+- 训练后经常只喝奶昔，不吃正餐
+- 一天水量大约 600 到 800ml
+- 他觉得奶昔本身就是水
+- 最近天气很热`,q:"这条线索为什么重要？",o:["出汗多、喝水少，会让尿液更浓","篮球会让菠菜变成草酸","奶昔可以完全代替水","天热会导致食物相克"],a:0,e:`肾结石风险不只和吃什么有关。水分不足时，尿液更浓，某些物质更容易形成晶体。`},
+{title:"调查 6",img:"https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=1200",text:`更细的饮食记录显示：
+
+- Anthony 最近几乎不喝牛奶
+- 不吃奶酪
+- 不吃酸奶
+- 他用的是没有强化钙的杏仁奶
+
+他以为：
+
+"结石里有钙，所以钙吃得越少越安全。"`,q:"这个想法哪里错了？",o:["所有钙都会直接变成结石","完全不吃钙一定最好","适量饮食钙反而可以在肠道里和草酸结合，减少草酸吸收","杏仁奶一定比牛奶危险"],a:2,e:`钙不是自动的敌人。合适量的饮食钙可以在消化道中帮助减少草酸吸收。`},
+{title:"调查 7",img:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200",text:`Anthony 每天往奶昔里加一片维生素 C 泡腾片。
+
+他说：
+
+"抗氧化嘛，多一点更健康。"`,q:"这个线索应该怎么理解？",o:["维生素 C 一定有毒","任何维生素都不能吃","对某些易形成结石的人，高剂量维生素 C 补剂可能增加风险，需要谨慎","维生素 C 会和菠菜相克"],a:2,e:`重点是额外补剂、高剂量和已经存在的其他风险因素叠加。`},
+{title:"最终推理",img:"https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=1200",text:`医院检查发现：
+
+CT：发现小结石。
+
+尿检：红细胞升高。
+
+结石成分：草酸钙。
+
+医生问："最近是否大量吃菠菜、坚果、巧克力、甜菜，或者喝很少水？"
+
+Anthony 沉默了。`,q:"整个案件最可能的原因是什么？",o:["菠菜和牛奶相克导致中毒","有人往奶昔里下毒","高草酸饮食 + 喝水少 + 出汗多 + 低钙误区 + 补剂叠加","他只是心理压力大"],a:2,e:"正确。这个案件不是投毒或食物相克，而是风险因素叠加。"},
+{title:"案件总结",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",text:`- 健康食物也要看剂量。
+- 把食物打成液体会隐藏真实摄入量。
+- 不要把"结石有钙"理解成"钙是敌人"。
+- 补剂不是越多越好。
+- 营养学不是给食物贴好坏标签，而是判断整体结构。`}
+]},
+{caseTitle:"健身房里的蓝色嘴唇",caseLabel:"案件 2",id:"case2_blue_lips",cover:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1200",summary:"",steps:[
+{title:"开场",img:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=1200",text:`晚上 8:12，学校附近健身房。
+
+Kristine 刚做完第四组波比跳，突然扶着跑步机蹲下。
+
+她脸色苍白，手一直抖，说："我心跳快得不对劲。"
+
+十分钟后，她被救护车送走。
+
+她的储物柜里，有一张纸条：
+
+"今天必须把脂肪燃起来。"
+
+任务：
+
+找出她到底是运动意外、补剂中毒，还是饮食安排出了问题。`},
+{title:"调查 1",img:"https://images.unsplash.com/photo-1593079831268-3381b0db4a77?q=80&w=1200",text:`玩家看到：
+
+- 半瓶 pre-workout
+- 两个空能量饮料罐
+- 没吃完的蛋白棒
+- 一件湿透的运动衣
+- 健身记录：训练前体重 68.2kg，训练后 66.9kg`,q:"第一眼最可疑的是什么？",o:["蛋白棒","能量饮料和运动前补剂","湿运动衣","以上都值得调查"],a:3,e:`好侦探不会只盯着一个线索。运动后的异常反应常常由多个因素共同造成。`},
+{title:"调查 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",text:`急诊记录：
+
+- 心跳很快
+- 手抖
+- 胸闷
+- 头晕
+- 没有皮疹
+- 没有喉咙肿胀
+- 没有多人同时发病`,q:"这不像哪一种情况？",o:["咖啡因刺激过量","脱水","严重食物过敏","运动后低血糖"],a:2,e:`如果是严重过敏，常见线索可能包括皮疹、喉咙肿胀、呼吸困难等。现在更像心血管和代谢压力叠加。`},
+{title:"调查 3",img:"https://images.unsplash.com/photo-1593095948071-474c5cc2989d?q=80&w=1200",text:`朋友说："她最近开始喝蛋白粉，会不会蛋白粉伤肾或者中毒了？"
+
+玩家检查：
+
+- 她当天其实没喝蛋白粉
+- 蛋白棒只吃了一小口
+- pre-workout 每勺含咖啡因 300mg
+- 能量饮料每罐含咖啡因 160mg
+- 她当天喝了两罐`,q:"更关键的是哪一项？",o:["蛋白质","咖啡因总量","蛋白棒味道","零糖标签"],a:1,e:`真正更危险的是咖啡因叠加。一勺 pre-workout 加两罐能量饮料，刺激强度可能远超她平时能承受的范围。`},
+{title:"调查 4",img:"https://images.unsplash.com/photo-1526401485004-2fda9f4d61f7?q=80&w=1200",text:`聊天记录显示：
+
+"我喝的是零糖能量饮料，应该没事吧？"
+"pre-workout 也是健身用的，应该越猛越有效。"
+"不吃饭训练燃脂更快。"`,q:"这里最大的误区是什么？",o:["零糖饮料完全没有生理影响","健身补剂不可能有风险","空腹训练一定最健康","以上都是误区"],a:3,e:`零糖不代表没有咖啡因刺激，健身补剂也不能随便叠加，空腹高强度训练也可能增加风险。`},
+{title:"调查 5",img:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1200",text:`当天记录：
+
+早上：只喝黑咖啡。
+中午：吃了半份沙拉。
+下午：一罐能量饮料。
+训练前：一勺 pre-workout。
+训练中：又喝一罐能量饮料。
+训练后：进桑拿 20 分钟。`,q:"哪个组合最危险？",o:["沙拉 + 蛋白棒","空腹 + 高咖啡因 + 高强度运动 + 桑拿","黑咖啡 + 水","运动鞋太紧"],a:1,e:`空腹、脱水、高咖啡因、高强度运动和桑拿都会让身体负担加重。`},
+{title:"调查 6",img:"https://images.unsplash.com/photo-1576678927484-cc907957088c?q=80&w=1200",text:`教练说：
+
+"她今天汗特别多，还说体重掉了 1kg 多，很开心。"
+"她说这说明脂肪烧掉了。"`,q:"训练前后短时间体重下降，最可能主要代表什么？",o:["脂肪大量消失","水分流失","肌肉增加","骨头变轻"],a:1,e:`短时间掉体重大多是水分变化，不是脂肪突然消失。`},
+{title:"最终推理",img:"https://images.unsplash.com/photo-1512678080530-7760d81faba6?q=80&w=1200",text:`医院处理后：
+
+- 补液后症状缓解
+- 心电监测没有发现持续性严重心脏病变
+- 医生询问咖啡因、补剂、运动和桑拿情况
+
+Kristine 说："我只是想练得更有效。"`,q:"最可能造成事故的原因是什么？",o:["蛋白粉中毒","被人下毒","空腹训练、高咖啡因叠加、脱水和电解质不足造成危险反应","零糖饮料和蛋白棒相克"],a:2,e:`这不是单一坏食物造成的，而是高咖啡因、进食不足、大量出汗、脱水和桑拿共同作用。`},
+{title:"案件总结",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",text:`- 零糖不等于零风险。
+- 补剂叠加可能变得危险。
+- 短时间体重下降通常是水分流失，不是脂肪消失。
+- 空腹和高强度运动不一定是最健康的组合。
+- 营养和健身都应该关注整体平衡。`}
+]},
+{caseTitle:"素食社的楼梯事故",caseLabel:"案件 3",id:"case3_vegan_staircase",cover:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200",summary:"",steps:[
+{title:"开场",img:"https://images.unsplash.com/photo-1490818387583-1baba5e638af?q=80&w=1200",text:`下午 3:25，教学楼三楼。
+
+Tang You 刚走出教室，突然扶住栏杆。
+
+她说："我眼前黑了一下。"
+
+下一秒，她从楼梯上摔了下去。
+
+医院检查：手腕骨裂，血红蛋白偏低。
+
+她的背包里有一本小册子："21 天纯净植物饮食挑战。"
+
+任务：找出她摔倒背后的真正原因。`},
+{title:"调查 1",img:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200",text:`当天饮食：
+
+早餐：燕麦奶拿铁。
+午餐：生菜、番茄、藜麦一点点。
+下午：一杯浓茶。
+晚餐计划：魔芋面。`,q:"第一眼看，最明显的问题是什么？",o:["完全不能素食","总能量可能太低","番茄有毒","藜麦不能吃"],a:1,e:`她不是吃了坏东西，而是可能长期吃得不够。`},
+{title:"调查 2",img:"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200",text:`最近记录：容易累、爬楼心跳快、脸色苍白、站起来会头晕、指甲变脆、月经量偏多。`,q:"这些线索更像什么？",o:["普通食物中毒","贫血或营养不足","食物相克","水果吃太多"],a:1,e:`症状指向贫血和营养不足。`},
+{title:"调查 3",img:"https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=1200",text:`同学说："我就说不能吃素吧，吃素肯定会贫血。"
+
+但另一个素食社成员有吃豆腐、豆类、强化豆奶、坚果、深色蔬菜，也会补充 B12，体检正常。`,q:"更准确的判断是什么？",o:["所有素食都一定危险","Tang You 的素食没有规划好","吃蔬菜会导致骨裂","纯素一定不能运动"],a:1,e:`问题不是素食本身，而是无计划的限制性饮食。`},
+{title:"调查 4",img:"https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1200",text:`她每天午饭后立刻喝浓茶。主要铁来源是菠菜、生菜、藜麦、豆类。`,q:"这有什么问题？",o:["茶会让所有营养消失","饭后浓茶可能影响植物性铁吸收","菠菜没有任何营养","茶和藜麦相克"],a:1,e:`植物性铁属于非血红素铁，吸收率较低。饭后大量浓茶可能进一步降低铁吸收。`},
+{title:"调查 5",img:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",text:`购物记录：生菜、魔芋面、燕麦奶、黄瓜、番茄、低卡酱汁。
+
+没有强化食品，没有 B12 补剂。`,q:"纯素饮食中特别需要注意哪种营养素？",o:["维生素 B12","维生素 C","水","膳食纤维"],a:0,e:`B12 主要来自动物性食品或强化食品和补剂。长期纯素如果不补充，可能有缺乏风险。`},
+{title:"调查 6",img:"https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200",text:`她每天大约 900 到 1100 kcal，同时每天跳舞训练 1.5 小时。
+
+她说："吃得越干净越好，饿一点说明身体在排毒。"`,q:"这里最大的误区是什么？",o:["饿感等于排毒","运动时不需要能量","低热量一定健康","以上都是"],a:3,e:`她把能量不足误认为健康信号。`},
+{title:"最终推理",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",text:`医院检查：血红蛋白偏低、铁蛋白偏低、B12 偏低。
+
+医生建议调整饮食结构，并根据检查结果补充相关营养素。`,q:"最可能造成事故的原因是什么？",o:["素食本身让她摔倒","她被投毒","无计划纯素 + 能量不足 + 铁/B12 风险 + 饭后浓茶影响吸收，导致贫血和头晕摔倒","蔬菜和茶相克"],a:2,e:`问题不是素食本身，而是没有规划好的限制性饮食。`},
+{title:"案件总结",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",text:`- 健康饮食不是越少越干净。
+- 素食不是问题，无计划的限制性饮食才是问题。
+- 植物性铁、B12、总能量都需要认真设计。`}
+]},
+{caseTitle:"隔夜炒饭的受害者",caseLabel:"案件 4",id:"case4_overnight_fried_rice",cover:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=1200",summary:"",steps:[
+{title:"开场",img:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=1200",text:`凌晨 1:40，宿舍楼。Callum 冲进卫生间，连续呕吐。他脸色惨白，肚子绞痛。室友说："他晚上就吃了一盒自己带回来的炒饭。"桌上有一个写着"黄金蛋炒饭，今日现做"的外卖盒。任务：找出为什么只有 Callum 中招。`},
+{title:"调查 1",img:"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1200",text:`玩家看到：半盒炒饭、一个微波炉、宿舍温度 27 摄氏度、垃圾桶里有美食节餐券、炒饭盒底部有水汽。`,q:"第一眼最可能怀疑什么？",o:["炒饭本身有毒","美食节集体食物中毒","保存和加热过程可能有问题","鸡蛋不能和米饭一起吃"],a:2,e:`关键不一定是食物做出来时，而是后来怎么保存。`},
+{title:"调查 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",text:`医生记录：主要症状是突然呕吐，发作很快，没有明显高烧，同摊位其他顾客大多没事。`,q:"这说明什么？",o:["一定是投毒","可能不是摊位当场造成的集体问题","米饭一定不能吃","鸡蛋过敏"],a:1,e:`不是所有吃过炒饭的人都中招，说明要查个人处理过程。`},
+{title:"调查 3",img:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",text:`时间线：下午 4:00 买炒饭，5:00 吃一半，5:30 放进背包，9:30 带回宿舍，11:40 微波炉加热 40 秒，12:00 吃完，凌晨 1:40 开始呕吐。`,q:"最可疑的时间段是哪一段？",o:["买饭前","背包里常温放置的几个小时","微波炉工作时","吃饭时用了勺子"],a:1,e:`熟饭在温暖环境中长时间放置。`},
+{title:"调查 4",img:"https://images.unsplash.com/photo-1585659722983-3a675dabf23d?q=80&w=1200",text:`室友说："他明明微波炉加热了，不可能有问题吧？"但炒饭中间只是温的，米饭结块，受热不均匀。`,q:"加热为什么不一定解决问题？",o:["微波炉会制造毒素","加热不均匀，且有些细菌毒素不容易靠简单加热消除","米饭加热后没有营养","鸡蛋遇热会变毒"],a:1,e:`重新加热不是万能撤销键。`},
+{title:"调查 5",img:"https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=1200",text:`米饭、面食等淀粉类熟食，如果煮熟后放在温暖环境中太久，可能给某些细菌创造机会。`,q:"这个案件真正的关键词是什么？",o:["食物相克","熟食保存","米饭不能隔夜","炒饭颜色太黄"],a:1,e:`风险来自保存条件，而不是隔夜两个字本身。`},
+{title:"调查 6",img:"https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?q=80&w=1200",text:`另一个同学也吃了同一摊炒饭，但他把剩饭 30 分钟内放进冰箱，第二天彻底加热后吃，没有不适。`,q:"这个对比证明什么？",o:["Callum 体质差","摊位一定无责","保存方式可能是决定性差异","冰箱能让任何坏食物变好"],a:2,e:`同样的食物，不同保存方式，结果可能不同。`},
+{title:"最终推理",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",text:`监控显示 Callum 的炒饭在背包里放了大约 4 小时。当天很热，后来只是短暂加热。医生判断符合食源性急性胃肠反应。`,q:"最可能造成事故的原因是什么？",o:["炒饭和鸡蛋相克","有人下毒","熟米饭常温放太久，保存不当，简单加热后食用导致食源性问题","米饭本身不能吃"],a:2,e:`问题不是米饭本身危险，而是保存不当，再加上短暂且不均匀的加热。`},
+{title:"案件总结",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",text:`- 食品安全不只发生在厨房。
+- "我加热过了"不等于一定安全。
+- 熟食要尽快冷藏，吃前彻底加热。`}
+]},
+{caseTitle:"奶茶店后的急救铃",caseLabel:"案件 5",id:"case5_milk_tea_emergency",cover:"https://images.unsplash.com/photo-1558857563-b371033873b8?q=80&w=1200",summary:"",steps:[
+{title:"开场",img:"https://images.unsplash.com/photo-1558857563-b371033873b8?q=80&w=1200",text:`晚上 7:05，奶茶店后厨。Eamon 正准备搬一箱珍珠，突然扶着桌子停住。他说："我有点发虚。"下一秒，他脚下一滑，撞到货架，额头流血。奇怪的是，出事前 20 分钟，他刚喝完一大杯全糖奶茶。任务：他明明喝了糖，为什么还会像低血糖一样出事？`},
+{title:"调查 1",img:"https://images.unsplash.com/photo-1525803377221-4f6ccdaa5133?q=80&w=1200",text:`玩家看到：一杯空的全糖奶茶、一包没拆的三明治、两张排班表、后厨地面有水、收银台旁有一袋糖浆。`,q:"第一眼最明显的矛盾是什么？",o:["他刚喝了甜饮，却说自己发虚","后厨地上有水","三明治没拆","奶茶很甜"],a:0,e:`喝了糖不等于身体获得了稳定能量。`},
+{title:"调查 2",img:"https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?q=80&w=1200",text:`早上赶时间没吃，中午一杯冰美式，下午试喝新品奶茶半杯，晚上 6:40 一大杯全糖奶茶，7:05 头晕摔倒。当天站立工作 6 小时。`,q:"真正的问题是什么？",o:["他完全没摄入热量","他有摄入糖，但缺少稳定正餐","奶茶和咖啡相克","珍珠有毒"],a:1,e:`他用甜饮替代正餐。`},
+{title:"调查 3",img:"https://images.unsplash.com/photo-1525385133512-2f3bdd039054?q=80&w=1200",text:`当天有 80 多位顾客点了同款，没有集体不适。其他店员也试喝了，没有问题。Eamon 是唯一一个一整天几乎没吃饭的人。`,q:"哪个解释更合理？",o:["奶茶本身有毒","他个人当天饮食状态更关键","所有奶茶都危险","奶茶和站立相克"],a:1,e:`不是奶茶单独导致，而是它出现在错误的饮食背景里。`},
+{title:"调查 4",img:"https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=1200",text:`高糖饮料会让血糖比较快上升，但如果没有搭配蛋白质、脂肪、膳食纤维和稳定碳水，能量维持时间可能不长。`,q:"全糖奶茶的问题不只是糖多，而是什么？",o:["它不能代替完整的一餐","它没有任何热量","它一定会立刻导致糖尿病","它会和冰块相克"],a:0,e:`液体糖不能代替稳定正餐。`},
+{title:"调查 5",img:"https://images.unsplash.com/photo-1584982751601-97dcc096659c?q=80&w=1200",text:`店长说他从 1 点站到 7 点，中间几乎没休息。他说不饿，因为奶茶喝饱了。`,q:"长时间站立会让什么风险增加？",o:["头晕、疲劳、注意力下降","立刻中毒","奶茶变质","糖分消失"],a:0,e:`体力消耗和站立压力让问题更明显。`},
+{title:"调查 6",img:"https://images.unsplash.com/photo-1494390248081-4e521a5940db?q=80&w=1200",text:`聊天记录："我今天喝了奶茶，热量已经超了。" "不吃饭可以抵掉。" "反正奶茶也挺顶饱。"`,q:"这个想法错在哪里？",o:["热量数字不能完全代表营养结构","奶茶热量可以替代所有营养","不吃饭一定更健康","三明治没有用"],a:0,e:`热量相近，不代表营养结构相同。`},
+{title:"最终推理",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",text:`医院记录显示：轻微头部外伤，当时血糖偏低或接近低值，休息并进食后好转。医生建议规律进餐，不要用甜饮代替正餐。`,q:"最可能造成事故的原因是什么？",o:["奶茶中毒","糖和咖啡相克","长时间未进正餐，只靠甜饮造成能量波动，叠加站立疲劳导致头晕摔伤","珍珠导致急性疾病"],a:2,e:`问题是用甜饮代替正餐，再叠加长时间站立和疲劳。`},
+{title:"案件总结",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",text:`- 一杯高糖饮料不是一顿饭。
+- 热量相同，不代表营养效果相同。
+- 喝饱了不等于身体真的被喂好了。`}
+]},
+{caseTitle:"派对后的麻木手指",caseLabel:"案件 6",id:"case6_numb_fingers_party",cover:"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=1200",summary:"",steps:[
+{title:"开场",img:"https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=1200",text:`晚上 11:50，生日派对结束后。Elowen 突然坐在沙发上，说："我嘴唇有点麻，手也麻。"随后她开始胃痛、恶心、呕吐。桌上有虾、蛋糕、无糖软糖、零糖鸡尾酒。任务：找出真正让她出事的东西。`},
+{title:"调查 1",img:"https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=1200",text:`玩家看到：半盘虾、一块没吃完的蛋糕、三包无糖软糖空袋、两罐零糖鸡尾酒、一杯冰咖啡。`,q:"第一眼有哪些嫌疑方向？",o:["海鲜过敏","酒精","无糖零食","都值得调查"],a:3,e:`派对现场有多个误导嫌疑人。`},
+{title:"调查 2",img:"https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200",text:`医生记录：胃痛、腹胀、呕吐、手指和嘴唇发麻，没有明显皮疹，没有喉咙肿胀，呼吸正常。`,q:"哪个嫌疑开始减弱？",o:["严重海鲜过敏","胃肠刺激","酒精和咖啡叠加","空腹状态"],a:0,e:`缺少典型严重过敏线索。`},
+{title:"调查 3",img:"https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?q=80&w=1200",text:`她以前吃虾没事。当晚吃虾的人很多，只有她不适。她只吃了两只虾，却吃掉三包无糖软糖。`,q:"更可疑的是什么？",o:["两只虾","三包无糖软糖","蛋糕蜡烛","餐具颜色"],a:1,e:`真正异常的是无糖软糖摄入量。`},
+{title:"调查 4",img:"https://images.unsplash.com/photo-1581798459219-318e76aecc7b?q=80&w=1200",text:`软糖包装写着：无糖、低卡、每包含糖醇 28g。小字提示：过量食用可能导致腹胀或腹泻。`,q:"无糖真正代表什么？",o:["没有任何生理影响","不含普通糖，但可能含糖醇等甜味剂","可以无限吃","一定比水果健康"],a:1,e:`无糖不等于无后果。`},
+{title:"调查 5",img:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200",text:`聊天记录："我今天控糖，蛋糕不能吃。" "无糖软糖没糖，应该不算。" "我还没怎么吃晚饭，留着热量喝酒。"`,q:"这里的营养误区是什么？",o:["控糖等于不吃正餐","无糖食品可以无限吃","酒精可以替代晚餐","以上都是"],a:3,e:`她把标签营销当成了营养判断。`},
+{title:"调查 6",img:"https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=1200",text:`时间线：下午冰咖啡，晚饭几乎没吃，派对喝两罐零糖鸡尾酒，吃三包无糖软糖，之后胃痛、发麻、虚弱。`,q:"手麻和嘴麻可能为什么更明显？",o:["空腹、酒精、咖啡因、焦虑和胃肠不适叠加","虾和软糖相克","无糖标签会导致麻木","蛋糕太甜"],a:0,e:`不是一个成分解释全部，而是多个因素叠加。`},
+{title:"最终推理",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",text:`医生判断胃肠反应明显，没有严重过敏证据。询问无糖糖果和糖醇摄入后，认为过量糖醇很可能是主要诱因。`,q:"最可能造成事故的原因是什么？",o:["海鲜过敏","饮料被下药","大量无糖软糖中的糖醇引发胃肠反应，叠加空腹、咖啡和酒精导致虚弱发麻","虾和无糖饮料相克"],a:2,e:`主要问题是大量糖醇，加上空腹、咖啡因、酒精和焦虑。`},
+{title:"案件总结",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",text:`- 无糖不等于无限。
+- 看标签不能只看大字，也要看小字。
+- 控糖不是靠把正餐换成无糖零食。`}
+]},
+{caseTitle:"补铁计划的黑色线索",caseLabel:"案件 7",id:"case7_iron_black_clue",cover:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200",summary:"",steps:[
+{title:"开场",img:"https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=1200",text:`早上 7:40，准备去上课时。Seren 突然捂着胃蹲下。她说："我胃像被拧住了。"她的母亲发现她最近排便颜色很黑，立刻带她去医院。书桌上放着铁剂、钙片、浓茶。任务：判断她是消化道出血、食物中毒，还是补铁方式出了问题。`},
+{title:"调查 1",img:"https://images.unsplash.com/photo-1471864190281-a93a3070b6de?q=80&w=1200",text:`玩家看到：铁剂瓶、钙片、一杯浓茶、黑咖啡，以及备忘录："缺铁，多补一点恢复更快。"`,q:"第一眼最值得调查什么？",o:["是否乱补铁","是否同时吃了影响吸收的东西","黑便是否一定等于严重出血","以上都要查"],a:3,e:`补铁案不能只看补没补，还要看怎么补。`},
+{title:"调查 2",img:"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200",text:`医生记录：胃痛、恶心、黑便、无明显高烧、没有多人同时生病、最近开始服用铁剂。`,q:"哪条信息最关键？",o:["最近开始铁剂","她喝茶","她上课","她穿校服"],a:0,e:`症状与开始补铁的时间重合。`},
+{title:"调查 3",img:"https://images.unsplash.com/photo-1583947581924-860bda6a26df?q=80&w=1200",text:`家人担心黑便是否一定是胃出血。玩家发现她最近开始吃铁剂，医生提醒铁剂可能让便色变黑，但胃痛和恶心仍需处理。`,q:"正确判断是什么？",o:["黑便一定没事","黑便一定是严重出血","铁剂可能让便色变黑，但仍要结合症状和医生判断","黑色食物中毒"],a:2,e:`黑色线索可能吓人，也可能是铁剂造成的。`},
+{title:"调查 4",img:"https://images.unsplash.com/photo-1587854692152-cbe660dbde88?q=80&w=1200",text:`瓶身建议每日 1 片。她实际早晚各 1 片，有时空腹吃。她说："我想快点补回来。"`,q:"这里最大的问题是什么？",o:["铁完全没用","缺铁就应该越多越快","过量或不当服用可能刺激胃肠","铁和水相克"],a:2,e:`补缺乏不是加速游戏，剂量不能随便翻倍。`},
+{title:"调查 5",img:"https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=1200",text:`她的习惯：早上铁剂 + 牛奶 + 钙片，中午饭后浓茶，晚上铁剂 + 咖啡。`,q:"这说明什么？",o:["吃了铁就一定吸收好","钙、茶、咖啡等可能影响铁吸收","牛奶能让铁剂变成毒","铁剂和茶相克到不能同一天出现"],a:1,e:`补了不等于吸收了。`},
+{title:"调查 6",img:"https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1200",text:`生活记录：月经量偏多、最近为了减脂少吃红肉、经常不吃早餐、运动后只喝茶饮。`,q:"补铁之外还要查什么？",o:["饮食结构和失铁原因","她的手机型号","茶杯颜色","是否讨厌牛奶"],a:0,e:`营养缺乏要找原因，不是只靠补剂压过去。`},
+{title:"最终推理",img:"https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1200",text:`医生判断胃肠不适与铁剂不当服用有关。黑便可能与铁剂有关，但已做必要排查。医生建议按医嘱调整剂量和服用方式，避免与影响吸收的饮品同服。`,q:"最可能造成事故的原因是什么？",o:["黑色食物中毒","单纯消化道大出血","自行加量补铁、空腹服用、与茶/咖啡/钙片搭配不当，造成胃肠刺激且影响吸收","铁剂和牛奶相克，所以铁永远不能补"],a:2,e:`问题不是铁剂本身，而是剂量、时间和搭配方式不当。`},
+{title:"案件总结",img:"https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=1200",text:`- 缺什么不等于猛补什么。
+- 补剂要看剂量、时间和搭配。
+- 营养缺乏要找原因，而不是只靠瓶子解决。`}
+]}
+];
+
+let currentCase=null;
+let steps=[];
+let language=localStorage.getItem("dietectiveLanguage")||null;
+let cases=language==="zh"?casesZH:casesEN;
+let i=0;
+let unlocked=0;
+let score=0;
+let totalQuestions=0;
+let firstTry=true;
+let completedCases=JSON.parse(localStorage.getItem("nutriDetectiveCompletedCases")||"{}");
+let typeToken=0;
+
+
+const UI={
+en:{selectCase:"Select a Case File",intro1:"Dietective is an interactive mystery game where players investigate strange medical incidents through evidence and deduction.",intro2:"The goal of this game is to teach nutrition literacy in a fun, story-driven way that reveals its complexity.",back:"< Back to Case Files",played:"PLAYED",score:"SCORE",continue:"CONTINUE",backCases:"BACK TO CASE FILES",wrong:"Incorrect deduction. Review the evidence and choose again. This question will not count as a first-try point.",firstTry:"First-try score",perfect:"Perfect Detective",sharp:"Sharp Investigator",reviewed:"Case Reviewed",yourScore:"Your first-try score:",scoreNote:"Only questions answered correctly on the first attempt count toward this score.",changeLanguage:"Change Language"},
+zh:{selectCase:"选择案件档案",intro1:"Dietective 是一款互动推理游戏，玩家需要通过证据和推理调查一系列奇怪的健康事件。",intro2:"这个游戏的目标是用有趣的故事方式帮助玩家理解营养知识，并看到营养问题背后的复杂性。",back:"< 返回案件列表",played:"已玩过",score:"分数",continue:"继续",backCases:"返回案件列表",wrong:"推理错误。请重新查看线索并再次选择。本题将不会计入一次答对分数。",firstTry:"一次答对分数",perfect:"完美侦探",sharp:"敏锐调查员",reviewed:"案件已完成",yourScore:"你的一次答对分数：",scoreNote:"只有第一次选择就答对的题目会计入这个分数。",changeLanguage:"切换语言"}
+};
+function t(key){return UI[language||"en"][key];}
+
+function displayTabTitle(s){
+if(language==="zh"){if(s.title.startsWith("调查")) return "调查";return s.title;}
+if(s.title.startsWith("Investigation")) return "Investigation";
+return s.title;
+}
+
+
+function showLanguageSelect(){
+typeToken++;
+currentCase=null;
+steps=[];
+i=0;
+unlocked=0;
+document.body.classList.add("lang-screen");
+document.body.classList.remove("zh-font");
+main.className="main language-mode";
+files.innerHTML="";
+title.className="language-title";
+title.textContent="DIETECTIVE";
+story.className="language-slogan";
+story.textContent="Every meal leaves evidence. Every symptom tells a story.";
+img.style.display="none";
+area.innerHTML="";
+let label=document.createElement("div");
+label.className="language-prompt";
+label.innerHTML=`<span>CHOOSE YOUR LANGUAGE</span><br><span class="zh-inline">选择你的调查语言</span>`;
+area.appendChild(label);
+let wrap=document.createElement("div");
+wrap.className="language-buttons";
+let en=document.createElement("button");
+en.className="language-btn";
+en.textContent="English";
+en.onclick=()=>setLanguage("en");
+let zh=document.createElement("button");
+zh.className="language-btn zh-btn";
+zh.textContent="中文";
+zh.onclick=()=>setLanguage("zh");
+wrap.appendChild(en);
+wrap.appendChild(zh);
+area.appendChild(wrap);
+let note=document.createElement("div");
+note.className="language-note";
+note.textContent="The case file opens after selection.";
+area.appendChild(note);
+}
+function setLanguage(lang){
+language=lang;localStorage.setItem("dietectiveLanguage",lang);cases=language==="zh"?casesZH:casesEN;showCaseSelect();
+}
+
+function showCaseSelect(){
+typeToken++;
+document.body.classList.remove("lang-screen");
+document.body.classList.toggle("zh-font",language==="zh");
+currentCase=null;
+steps=[];
+i=0;
+unlocked=0;
+main.className="main case-select-mode";
+files.innerHTML="";
+title.className="case-select-title";
+title.textContent=t("selectCase");
+story.className="case-select-subtitle";
+story.textContent="";
+img.style.display="none";
+area.innerHTML="";
+
+let langSwitch=document.createElement("div");
+langSwitch.className="file";
+langSwitch.textContent=t("changeLanguage");
+langSwitch.onclick=showLanguageSelect;
+files.appendChild(langSwitch);
+
+cases.forEach((c,n)=>{
+let f=document.createElement("div");
+let done=completedCases[c.id];
+f.className="file"+(done?" completed":"");
+f.textContent=c.caseLabel+": "+c.caseTitle+(done?" - "+t("played"):"");
+f.onclick=()=>startCase(n);
+files.appendChild(f);
+});
+
+let intro=document.createElement("div");
+intro.className="game-intro";
+intro.innerHTML=`<p>${t("intro1")}</p><p>${t("intro2")}</p>`;
+area.appendChild(intro);
+
+let grid=document.createElement("div");
+grid.className="case-grid";
+cases.forEach((c,n)=>{
+let card=document.createElement("div");
+let done=completedCases[c.id];
+card.className="case-card";
+card.onclick=()=>startCase(n);
+let playedText=done?`<div class="played-badge">${t("played")} - ${t("score")} ${done.score}/${done.total}</div>`:"";
+card.innerHTML=`<img src="${c.cover}" alt="${c.caseTitle}"><div class="case-card-body"><h2>${c.caseLabel}: ${c.caseTitle}</h2>${playedText}</div>`;
+grid.appendChild(card);
+});
+area.appendChild(grid);
+}
+
+function startCase(n){
+currentCase=cases[n];
+steps=currentCase.steps;
+i=0;
+unlocked=0;
+score=0;
+totalQuestions=steps.filter(step=>step.q).length;
+firstTry=true;
+title.className="title";
+story.className="story";
+img.style.display="";
+render();
+}
+
+function sidebar(){
+files.innerHTML="";
+let back=document.createElement("div");
+back.className="file";
+back.textContent=t("back");
+back.onclick=showCaseSelect;
+files.appendChild(back);
+
+steps.forEach((s,n)=>{
+let d=document.createElement("div");
+let locked=n>unlocked;
+d.className="file"+(n===i?" active":"")+(locked?" locked":"");
+d.textContent=displayTabTitle(s);
+if(!locked){
+d.onclick=()=>{i=n;render();};
+}
+files.appendChild(d);
+});
+}
+
+function type(text,el){
+typeToken++;
+el.textContent=text;
+}
+
+function goNext(){
+if(i===steps.length-1){
+showCaseSelect();
+}else{
+unlocked=Math.max(unlocked,i+1);
+i++;
+render();
+}
+}
+
+function render(){
+sidebar();
+let s=steps[i];
+firstTry=true;
+
+main.className="main";
+main.classList.remove("opening-mode","investigation-mode","takeaway-mode","case-select-mode");
+if(s.title==="Opening"){
+main.classList.add("opening-mode");
+}else if(s.title==="Key Takeaways"){
+main.classList.add("takeaway-mode");
+}else{
+main.classList.add("investigation-mode");
+}
+
+title.className="title";
+story.className="story";
+title.textContent=s.title;
+type(s.text,story);
+img.src=s.img;
+img.style.display="";
+area.innerHTML="";
+
+if(!s.q){
+if(i===steps.length-1 && currentCase){
+completedCases[currentCase.id]={score:score,total:totalQuestions};
+localStorage.setItem("nutriDetectiveCompletedCases",JSON.stringify(completedCases));
+
+let panel=document.createElement("div");
+panel.className="score-panel";
+let percent=totalQuestions?Math.round(score/totalQuestions*100):0;
+let titleText=percent===100?t("perfect"):percent>=70?t("sharp"):t("reviewed");
+panel.innerHTML=`<h2>${titleText}</h2><p>${t("yourScore")}</p><p><span class="score-number">${score}/${totalQuestions}</span> (${percent}%)</p><p>${t("scoreNote")}</p>`;
+area.appendChild(panel);
+}
+let b=document.createElement("button");
+b.className="btn";
+b.textContent=i===steps.length-1?t("backCases"):t("continue");
+b.onclick=goNext;
+area.appendChild(b);
+return;
+}
+
+let q=document.createElement("div");
+q.className="question";
+q.innerHTML="<h3>"+s.q+"</h3>";
+let feedback=document.createElement("div");
+let solved=false;
+
+s.o.forEach((op,n)=>{
+let bt=document.createElement("button");
+bt.className="option";
+bt.textContent=op;
+bt.onclick=()=>{
+if(solved) return;
+
+if(n===s.a){
+solved=true;
+if(firstTry){score++;}
+[...q.querySelectorAll(".option")].forEach(button=>button.disabled=true);
+bt.classList.add("correct");
+feedback.className="msg good";
+feedback.textContent=s.e+"\n\n"+t("firstTry")+": "+score+" / "+totalQuestions;
+
+let c=document.createElement("button");
+c.className="btn";
+c.textContent=t("continue");
+c.onclick=goNext;
+feedback.appendChild(c);
+}else{
+firstTry=false;
+bt.classList.add("wrong");
+document.body.classList.add("shake");
+setTimeout(()=>document.body.classList.remove("shake"),350);
+feedback.className="msg bad";
+feedback.textContent=t("wrong");
+}
+};
+q.appendChild(bt);
+});
+
+q.appendChild(feedback);
+area.appendChild(q);
+}
+
+showLanguageSelect();
+</script>
+</body>
+</html>
